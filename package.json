@@ -1,6 +1,6 @@
 {
-  "name": "pg-to-ts",
-  "version": "4.1.1",
+  "name": "mundungus",
+  "version": "4.1.2",
   "description": "Generate TypeScript-friendly interfaces and constants from (postgres) SQL database schema",
   "keywords": [
     "postgres",
@@ -29,13 +29,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/danvk/pg-to-ts.git"
+    "url": "https://github.com/batuorgvue/pg-to-ts.git"
   },
   "bugs": {
-    "url": "https://github.com/danvk/pg-to-ts/issues"
+    "url": "https://github.com/batuorgvue/pg-to-ts/issues"
   },
-  "author": "Dan Vanderkam <danvdk@gmail.com>",
+  "author": "Batu Ellery <batu.ellery@orgvue.com>",
   "contributors": [
+    "Dan Vanderkam <danvdk@gmail.com>",
     "Mengxuan Xia <xiamx2004@gmail.com>",
     "Arnaud Benhamdine <arnaud.benhamdine@gmail.com>",
     "zigomir <zigomir@gmail.com>",
