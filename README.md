@@ -1,14 +1,14 @@
-# pg-to-ts
+# mundungus
 
-`pg-to-ts` generates TypeScript types that match your Postgres database schema.
+`mundungus` (forked from `pg-to-ts`) generates TypeScript types that match your Postgres database schema.
 It works by querying the Postgres metadata schema (`pg_catalog`) and generating
 equivalent TypeScript types, as well as some JavaScript values that can be
 helpful for generating queries at runtime.
 
 Usage:
 
-    npm install pg-to-ts
-    pg-to-ts generate -c postgresql://user:pass@host/db -o dbschema.ts
+    npm install mundungus
+    mundungus generate -c postgresql://user:pass@host/db -o dbschema.ts
 
 The resulting file looks like:
 
@@ -85,7 +85,7 @@ a lot of sense, but it can lead to problems if you try to serialize them as
 JSON, which converts them to strings. This means that the serialized and de-
 serialized table types will be different.
 
-By default `pg-to-ts` will put `Date` types in your schema file, but if you'd
+By default `mundungus` will put `Date` types in your schema file, but if you'd
 prefer strings, pass `--datesAsStrings`. Note that you'll be responsible for
 making sure that timestamps/dates really do come back as strings, not Date objects.
 See <https://github.com/brianc/node-pg-types> for details.
@@ -96,7 +96,7 @@ By default, Postgres `json` and `jsonb` columns will be typed as `unknown`.
 This is safe but not very precise, and it can make them cumbersome to work with.
 Oftentimes you know what the type should be.
 
-To tell `pg-to-ts` to use a specific TypeScript type for a `json` column, use
+To tell `mundungus` to use a specific TypeScript type for a `json` column, use
 a JSDoc `@type` annotation:
 
 ```sql
@@ -185,17 +185,17 @@ export const tables = {
 
 ## Command Line Usage
 
-There are a few ways to control `pg-to-ts`:
+There are a few ways to control `mundungus`:
 
 ### Command line flags
 
-    pg-to-ts generate -c postgresql://user:pass@host/db -o dbschema.ts
+    mundungus generate -c postgresql://user:pass@host/db -o dbschema.ts
 
 ### JS / JSON file
 
-    pg-to-ts generate --config path/to/config.json
-    pg-to-ts generate --config  # defaults to pg-to-ts.json
-    cat pg-to-ts.json
+    mundungus generate --config path/to/config.json
+    mundungus generate --config  # defaults to mundungus.json
+    cat mundungus.json
 
 The JSON file has configuration options as top-level keys:
 

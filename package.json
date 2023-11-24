@@ -22,17 +22,17 @@
     "coverage": "jest --coverage"
   },
   "bin": {
-    "pg-to-ts": "dist/cli.js"
+    "mundungus": "dist/cli.js"
   },
   "files": [
     "dist"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/batuorgvue/pg-to-ts.git"
+    "url": "https://github.com/batuorgvue/mundungus.git"
   },
   "bugs": {
-    "url": "https://github.com/batuorgvue/pg-to-ts/issues"
+    "url": "https://github.com/batuorgvue/mundungus/issues"
   },
   "author": "Batu Ellery <batu.ellery@orgvue.com>",
   "contributors": [

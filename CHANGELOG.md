@@ -1,5 +1,13 @@
 # Changelog
 
+
+## 4.1.2 (2022/04/02)
+
+- added support for views (concatenate with tables in params)
+- new option `inputSuffix`. The outputted typescript input names will have the suffix of your choosing,
+  defaults to `input`
+- updated package.json
+
 ## 4.1.0 (2022/04/02)
 
 - New option: `--prefixWithSchemaNames`. This adds the schema as a prefix to

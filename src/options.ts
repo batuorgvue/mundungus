@@ -3,7 +3,6 @@ const DEFAULT_OPTIONS: Options = {
   camelCase: false,
   datesAsStrings: false,
   prefixWithSchemaNames: false,
-  views: false,
   inputSuffix: 'Input',
 };
 
@@ -18,7 +17,6 @@ export interface Options {
   prefixWithSchemaNames: boolean;
 
   inputSuffix: string;
-  views: boolean;
 }
 
 export const loadDefaultOptions = (
