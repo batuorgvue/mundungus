@@ -1,14 +1,14 @@
-# mundungus
+# pg-type-gen
 
-`mundungus` (forked from `pg-to-ts`) generates TypeScript types that match your Postgres database schema.
+`pg-type-gen` (forked from `pg-to-ts`) generates TypeScript types that match your Postgres database schema.
 It works by querying the Postgres metadata schema (`pg_catalog`) and generating
 equivalent TypeScript types, as well as some JavaScript values that can be
 helpful for generating queries at runtime.
 
 Usage:
 
-    npm install mundungus
-    mundungus generate -c postgresql://user:pass@host/db -o dbschema.ts
+    npm install pg-type-gen
+    pg-type-gen generate -c postgresql://user:pass@host/db -o dbschema.ts
 
 The resulting file looks like:
 
@@ -85,7 +85,7 @@ a lot of sense, but it can lead to problems if you try to serialize them as
 JSON, which converts them to strings. This means that the serialized and de-
 serialized table types will be different.
 
-By default `mundungus` will put `Date` types in your schema file, but if you'd
+By default `pg-type-gen` will put `Date` types in your schema file, but if you'd
 prefer strings, pass `--datesAsStrings`. Note that you'll be responsible for
 making sure that timestamps/dates really do come back as strings, not Date objects.
 See <https://github.com/brianc/node-pg-types> for details.
@@ -96,7 +96,7 @@ By default, Postgres `json` and `jsonb` columns will be typed as `unknown`.
 This is safe but not very precise, and it can make them cumbersome to work with.
 Oftentimes you know what the type should be.
 
-To tell `mundungus` to use a specific TypeScript type for a `json` column, use
+To tell `pg-type-gen` to use a specific TypeScript type for a `json` column, use
 a JSDoc `@type` annotation:
 
 ```sql
@@ -185,24 +185,24 @@ export const tables = {
 
 ## Command Line Usage
 
-There are a few ways to control `mundungus`:
+There are a few ways to control `pg-type-gen`:
 
 ### Command line flags
 
-    mundungus generate -c postgresql://user:pass@host/db -o dbschema.ts
+    pg-type-gen generate -c postgresql://user:pass@host/db -o dbschema.ts
 
 ### JS / JSON file
 
-    mundungus generate --config path/to/config.json
-    mundungus generate --config  # defaults to mundungus.json
-    cat mundungus.json
+    pg-type-gen generate --config path/to/config.json
+    pg-type-gen generate --config  # defaults to pg-type-gen.json
+    cat pg-type-gen.json
 
 The JSON file has configuration options as top-level keys:
 
 ```json
 {
   "conn": "postgres://user@localhost:5432/postgres",
-  "output": "/tmp/cli-pg-to-ts-json.ts"
+  "output": "/tmp/cli-pg-type-gen-json.ts"
 }
 ```
 
@@ -212,20 +212,20 @@ Flags may also be specified using environment variables prefixed with `PG_TO_TS`
 
     PG_TO_TS_CONN=postgres://user@localhost:5432/postgres
     PG_TO_TS_OUTPUT=/tmp/cli-env.ts
-    pg-to-ts generate
+    pg-type-gen generate
 
 ## Development Quickstart
 
-You'll need a Postgres instance running to do most development work with pg-to-ts.
+You'll need a Postgres instance running to do most development work with pg-type-gen.
 
-    git clone https://github.com/danvk/pg-to-ts.git
-    cd pg-to-ts
+    git clone https://github.com/batuorgvue/pg-type-gen.git
+    cd pg-type-gen
     yarn
     yarn build
 
 You can iterate using your own DB schema. Or, to load the test schema, run:
 
-    psql postgres://user:pass@host/postgres -a -f test/fixture/pg-to-ts.sql
+    psql postgres://user:pass@host/postgres -a -f test/fixture/pg-type-gen.sql
 
 Then generate a `dbschema.ts` file by running:
 
