@@ -8,7 +8,8 @@
 import _ from 'lodash';
 
 import {TableDefinition, ForeignKey} from './schemaInterfaces';
-import Options from './options';
+import {Options} from './options';
+import {transformColumnName, transformTypeName} from './helpers';
 
 function nameIsReservedKeyword(name: string): boolean {
   const reservedKeywords = ['string', 'number', 'package', 'public'];
@@ -87,6 +88,9 @@ export function generateTableInterface(
   schemaName: string,
   options: Options,
 ): [code: string, names: TableNames, typesToImport: Set<string>] {
+  const {prefixWithSchemaNames, camelCase, jsonTypesFile, inputSuffix} =
+    options;
+
   let selectableMembers = '';
   let insertableMembers = '';
   const columns: string[] = [];
@@ -94,7 +98,7 @@ export function generateTableInterface(
   const typesToImport = new Set<string>();
 
   for (const columnNameRaw of Object.keys(tableDefinition.columns)) {
-    const columnName = options.transformColumnName(columnNameRaw),
+    const columnName = transformColumnName(camelCase, columnNameRaw),
       columnDef = tableDefinition.columns[columnNameRaw],
       comment = columnDef.comment,
       possiblyOrNull = columnDef.nullable ? ' | null' : '',
@@ -103,7 +107,7 @@ export function generateTableInterface(
       jsdoc = comment ? `/** ${comment} */\n` : '';
 
     let {tsType} = columnDef;
-    if (tsType === 'Json' && options.options.jsonTypesFile && comment) {
+    if (tsType === 'Json' && jsonTypesFile && comment) {
       const m = JSDOC_TYPE_RE.exec(comment);
       if (m) {
         tsType = m[1].trim();
@@ -120,7 +124,6 @@ export function generateTableInterface(
     }
   }
 
-  const {prefixWithSchemaNames} = options.options;
   let qualifiedTableName = tableName;
   let sqlTableName = tableName;
   if (prefixWithSchemaNames) {
@@ -140,7 +143,7 @@ export function generateTableInterface(
   const names: TableNames = {
     var: tableVarName,
     type: camelTableName,
-    input: camelTableName + 'Input',
+    input: camelTableName + inputSuffix,
   };
 
   return [
@@ -167,11 +170,11 @@ export function generateTableInterface(
 
 export function generateEnumType(
   enumObject: Record<string, string[]>,
-  options: Options,
+  {camelCase}: Options,
 ) {
   let enumString = '';
   for (const enumNameRaw in enumObject) {
-    const enumName = options.transformTypeName(enumNameRaw);
+    const enumName = transformTypeName(camelCase, enumNameRaw);
     enumString += `export type ${enumName} = `;
     enumString += enumObject[enumNameRaw]
       .map((v: string) => `'${v}'`)

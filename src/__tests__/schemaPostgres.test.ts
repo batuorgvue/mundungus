@@ -1,6 +1,6 @@
 import PgPromise from 'pg-promise';
 import {ColumnDefinition} from '../../src/schemaInterfaces';
-import Options from '../../src/options';
+import {loadDefaultOptions} from '../../src/options';
 import {PostgresDatabase, pgTypeToTsType} from '../../src/schemaPostgres';
 
 jest.mock('pg-promise', () => {
@@ -17,8 +17,6 @@ jest.mock('pg-promise', () => {
     return mock;
   });
 });
-
-const options = new Options({});
 
 describe('PostgresDatabase', () => {
   let pg: PostgresDatabase;
@@ -85,10 +83,11 @@ describe('PostgresDatabase', () => {
       mockedDb.map.mockResolvedValueOnce([]);
       await pg.getSchemaTables('schemaName');
       expect(pg.db.map).toHaveBeenCalledWith(
-        'SELECT table_name ' +
-          'FROM information_schema.columns ' +
-          'WHERE table_schema = $1 ' +
-          'GROUP BY table_name ORDER BY lower(table_name)',
+        'SELECT c.table_name, t.table_type ' +
+          'FROM information_schema.columns c ' +
+          'INNER JOIN information_schema.tables t ON t.table_name = c.table_name ' +
+          'WHERE c.table_schema = $1 ' +
+          'GROUP BY c.table_name, t.table_type ORDER BY lower(c.table_name)',
         ['schemaName'],
         expect.any(Function),
       );
@@ -102,7 +101,10 @@ describe('PostgresDatabase', () => {
       });
       await pg.getSchemaTables('schema');
 
-      expect(schemaTables).toEqual(['table1', 'table2']);
+      expect(schemaTables).toEqual([
+        {isView: false, tableName: 'table1'},
+        {isView: false, tableName: 'table2'},
+      ]);
     });
   });
 
@@ -127,7 +129,7 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        expect(pgTypeToTsType(td, [], options)).toEqual('string');
+        expect(pgTypeToTsType(td, [], loadDefaultOptions())).toEqual('string');
       }
     });
 
@@ -147,7 +149,7 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        expect(pgTypeToTsType(td, [], options)).toEqual('number');
+        expect(pgTypeToTsType(td, [], loadDefaultOptions())).toEqual('number');
       }
     });
 
@@ -157,7 +159,7 @@ describe('PostgresDatabase', () => {
         nullable: false,
         hasDefault: false,
       };
-      expect(pgTypeToTsType(td, [], options)).toEqual('boolean');
+      expect(pgTypeToTsType(td, [], loadDefaultOptions())).toEqual('boolean');
     });
 
     it('maps to Object', () => {
@@ -167,7 +169,7 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        expect(pgTypeToTsType(td, [], options)).toEqual('Json');
+        expect(pgTypeToTsType(td, [], loadDefaultOptions())).toEqual('Json');
       }
     });
 
@@ -178,7 +180,7 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        expect(pgTypeToTsType(td, [], options)).toEqual('Date');
+        expect(pgTypeToTsType(td, [], loadDefaultOptions())).toEqual('Date');
       }
     });
 
@@ -197,7 +199,9 @@ describe('PostgresDatabase', () => {
           nullable: false,
           hasDefault: false,
         };
-        expect(pgTypeToTsType(td, [], options)).toEqual('number[]');
+        expect(pgTypeToTsType(td, [], loadDefaultOptions())).toEqual(
+          'number[]',
+        );
       }
     });
   });
@@ -228,7 +232,7 @@ describe('PostgresDatabase', () => {
             comment: 'Table Comment',
           },
           ['CustomType'],
-          options,
+          loadDefaultOptions(),
         ).columns,
       ).toEqual({
         id: {

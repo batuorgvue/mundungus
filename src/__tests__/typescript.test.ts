@@ -1,7 +1,5 @@
 import * as TypeScript from '../../src/typescript';
-import Options from '../../src/options';
-
-const options = new Options({});
+import {loadDefaultOptions} from '../options';
 
 const schemaName = 'testschemaname';
 
@@ -15,7 +13,7 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         schemaName,
-        options,
+        loadDefaultOptions(),
       );
       expect(tableInterface).toMatchInlineSnapshot(`
         "
@@ -53,7 +51,7 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         schemaName,
-        new Options({
+        loadDefaultOptions({
           prefixWithSchemaNames: true,
         }),
       );
@@ -93,7 +91,7 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         schemaName,
-        options,
+        loadDefaultOptions(),
       );
       expect(tableInterface).toMatchInlineSnapshot(`
         "
@@ -144,7 +142,7 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         schemaName,
-        options,
+        loadDefaultOptions(),
       );
       expect(tableInterface).toMatchInlineSnapshot(`
         "
@@ -205,7 +203,7 @@ describe('TypeScript', () => {
           primaryKey: null,
         },
         schemaName,
-        options,
+        loadDefaultOptions(),
       );
 
       // None of the reserved word columns need to be quoted.
@@ -274,7 +272,7 @@ describe('TypeScript', () => {
           primaryKey: 'id',
         },
         schemaName,
-        options,
+        loadDefaultOptions(),
       );
       expect(tableInterface).toMatchInlineSnapshot(`
         "
@@ -313,7 +311,7 @@ describe('TypeScript', () => {
 
   describe('generateEnumType', () => {
     it('empty object', () => {
-      const enumType = TypeScript.generateEnumType({}, options);
+      const enumType = TypeScript.generateEnumType({}, loadDefaultOptions());
       expect(enumType).toEqual('');
     });
     it('with enumerations', () => {
@@ -322,7 +320,7 @@ describe('TypeScript', () => {
           enum1: ['val1', 'val2', 'val3', 'val4'],
           enum2: ['val5', 'val6', 'val7', 'val8'],
         },
-        options,
+        loadDefaultOptions(),
       );
       expect(enumType).toEqual(
         "export type enum1 = 'val1' | 'val2' | 'val3' | 'val4';\n" +

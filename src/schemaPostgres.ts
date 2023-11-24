@@ -1,20 +1,21 @@
-import PgPromise from 'pg-promise';
 import _ from 'lodash';
+import PgPromise from 'pg-promise';
 
-import Options from './options';
+import {transformTypeName} from './helpers';
+import {Options} from './options';
 import {
   ColumnDefinition,
-  TableDefinition,
   ForeignKey,
+  TableDefinition,
 } from './schemaInterfaces';
 
 const pgp = PgPromise();
 
-export function pgTypeToTsType(
+export const pgTypeToTsType = (
   column: ColumnDefinition,
   customTypes: string[],
-  options: Options,
-): string {
+  {camelCase, datesAsStrings}: Options,
+): string => {
   const {udtName} = column;
   switch (udtName) {
     case 'bpchar':
@@ -47,7 +48,7 @@ export function pgTypeToTsType(
     case 'date':
     case 'timestamp':
     case 'timestamptz':
-      return options.options.datesAsStrings ? 'string' : 'Date';
+      return datesAsStrings ? 'string' : 'Date';
     case '_int2':
     case '_int4':
     case '_int8':
@@ -71,20 +72,22 @@ export function pgTypeToTsType(
       return 'Date[]';
     default:
       if (customTypes.includes(udtName)) {
-        return options.transformTypeName(udtName);
+        return transformTypeName(camelCase, udtName);
       }
       if (udtName.startsWith('_')) {
         const singularName = udtName.slice(1);
         if (customTypes.includes(singularName)) {
-          return options.transformTypeName(singularName) + '[]';
+          return `${transformTypeName(camelCase, singularName)}[]`;
         }
       }
+
       console.log(
         `Type [${column.udtName} has been mapped to [any] because no specific type has been found.`,
       );
+
       return 'any';
   }
-}
+};
 
 interface Metadata {
   schema: string;
@@ -93,6 +96,11 @@ interface Metadata {
   tableToKeys: {[tableName: string]: string};
   columnComments: {[tableName: string]: {[columnName: string]: string}};
   tableComments: {[tableName: string]: string};
+}
+
+export interface TableWithMetaData {
+  tableName: string;
+  isView: boolean;
 }
 
 export class PostgresDatabase {
@@ -119,16 +127,16 @@ export class PostgresDatabase {
     };
   }
 
-  public query(queryString: string) {
+  query(queryString: string) {
     return this.db.query(queryString);
   }
 
   /** Call this if you know the DB has changed underneath you, e.g. in a test. */
-  public reset() {
+  reset() {
     this.metadata = null;
   }
 
-  public async getEnumTypes(schema?: string) {
+  async getEnumTypes(schema?: string) {
     type T = {name: string; value: string};
     const enums: Record<string, string[]> = {};
     const enumSchemaWhereClause = schema
@@ -149,10 +157,11 @@ export class PostgresDatabase {
         enums[item.name].push(item.value);
       },
     );
+
     return enums;
   }
 
-  public async getTableDefinition(tableName: string, tableSchema: string) {
+  async getTableDefinition(tableName: string, tableSchema: string) {
     const {tableToKeys, columnComments, tableComments, foreignKeys} =
       await this.getMeta(tableSchema);
 
@@ -191,16 +200,18 @@ export class PostgresDatabase {
         };
       },
     );
+
     return tableDefinition;
   }
 
-  public async getTableTypes(
+  async getTableTypes(
     tableName: string,
     tableSchema: string,
     options: Options,
   ) {
     const {enumTypes} = await this.getMeta(tableSchema);
     const customTypes = _.keys(enumTypes);
+
     return PostgresDatabase.mapTableDefinitionToType(
       await this.getTableDefinition(tableName, tableSchema),
       customTypes,
@@ -208,18 +219,22 @@ export class PostgresDatabase {
     );
   }
 
-  public async getSchemaTables(schemaName: string): Promise<string[]> {
-    return this.db.map<string>(
-      'SELECT table_name ' +
-        'FROM information_schema.columns ' +
-        'WHERE table_schema = $1 ' +
-        'GROUP BY table_name ORDER BY lower(table_name)',
+  async getSchemaTables(schemaName: string) {
+    return this.db.map<TableWithMetaData>(
+      'SELECT c.table_name, t.table_type ' +
+        'FROM information_schema.columns c ' +
+        'INNER JOIN information_schema.tables t ON t.table_name = c.table_name ' +
+        'WHERE c.table_schema = $1 ' +
+        'GROUP BY c.table_name, t.table_type ORDER BY lower(c.table_name)',
       [schemaName],
-      (schemaItem: {table_name: string}) => schemaItem.table_name,
+      (schemaItem: {table_name: string; table_type: string}) => ({
+        tableName: schemaItem.table_name,
+        isView: schemaItem.table_type === 'VIEW',
+      }),
     );
   }
 
-  public async getPrimaryKeys(schemaName: string) {
+  async getPrimaryKeys(schemaName: string) {
     interface PrimaryKeyDefinition {
       table_name: string;
       constraint_name: string;
@@ -254,7 +269,7 @@ export class PostgresDatabase {
       .value();
   }
 
-  public async getColumnComments(schemaName: string) {
+  async getColumnComments(schemaName: string) {
     interface ColumnComment {
       table_name: string;
       column_name: string;
@@ -290,7 +305,7 @@ export class PostgresDatabase {
       .value();
   }
 
-  public async getTableComments(schemaName: string) {
+  async getTableComments(schemaName: string) {
     interface TableComment {
       table_name: string;
       description: string;
@@ -395,6 +410,7 @@ export class PostgresDatabase {
     };
 
     this.metadata = metadata;
+
     return metadata;
   }
 
